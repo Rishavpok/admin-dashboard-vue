@@ -1,0 +1,102 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    margin: 0;
+    padding:0;
+    box-sizing: border-box;
+    height: 100vh;   
+}
+
+.login-wrapper {
+    position: fixed; /* cover the entire viewport */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: grid; /* safe way to center without flex */
+    place-items: center; /* centers content horizontally and vertically */
+    background: #f4f5f7; /* optional: light background */
+    z-index: 999; /* optional: make sure it's above other content */
+}
+
+.register-card {
+  background: #ffffff;
+  width: 360px;
+  margin: auto;
+  padding: 32px 28px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.register-card h2 {
+  margin: 0 0 20px;
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  color: #333;
+}
+
+.field-group {
+  margin-bottom: 16px;
+}
+
+.field-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.field-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  background: #fafafa;
+}
+
+.field-group input:focus {
+  border-color: #007bff;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px 0;
+  background: #007bff;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-btn:hover {
+  background: #0063d6;
+}
+
+.login-link {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 13px;
+  color: #555;
+}
+
+.login-link a {
+  color: #007bff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}
+
+.material-icons {
+  cursor: pointer;
+}
