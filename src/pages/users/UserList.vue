@@ -24,7 +24,7 @@
           <td>
             <span
               class="status"
-              :class="{ acitve: user.status === 'Active' }"
+              :class="{ active: user.status === 'Active', inactive: user.status === 'Inactive' }"
               >{{ user.status }}</span
             >
           </td>
