@@ -11,28 +11,32 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Design Homepage</td>
-            <td>In Progress</td>
-            <td>High</td>
-            <td>John Doe</td>
-          </tr>
-          <tr>
-            <td>Fix Bugs</td>
-            <td>To Do</td>
-            <td>Medium</td>
-            <td>Jane Smith</td>
-          </tr>
-          <tr>
-            <td>Deploy Project</td>
-            <td>Completed</td>
-            <td>Low</td>
-            <td>Mark Lee</td>
+          <tr v-for="item in props.recentTasks" >
+            <td>{{ item.title }}</td>
+            <td>{{ item.status }}</td>
+            <td>{{ item.priority }}</td>
+            <td>{{ item.Assigned_to }}</td>
           </tr>
         </tbody>
       </table>
     </div>
 </template>
+
+<script lang="ts" setup>
+
+type Task = {
+  title: string
+  status: string
+  priority: string
+  Assigned_to: string
+}
+
+// Pass props as a generic type
+const props = defineProps<{
+  recentTasks: Task[]
+}>()
+
+</script>
 
 <style scoped>
     /* Recent Table */

@@ -2,22 +2,36 @@
         <div class="stats-cards">
       <div class="card">
         <div class="card-title">Total Users</div>
-        <div class="card-value">1250</div>
+        <div class="card-value">{{ props['userStats'].total_users }}</div>
       </div>
       <div class="card">
         <div class="card-title">Active Users</div>
-        <div class="card-value">893</div>
+        <div class="card-value">{{ props['userStats'].active_users }}</div>
       </div>
       <div class="card">
         <div class="card-title">Tasks Completed</div>
-        <div class="card-value">412</div>
+        <div class="card-value">{{ props['userStats'].task_completed }}</div>
       </div>
       <div class="card">
         <div class="card-title">Pending Tasks</div>
-        <div class="card-value">58</div>
+        <div class="card-value">{{ props['userStats'].pending_tasks }}</div>
       </div>
     </div>
 </template>
+
+<script lang="ts" setup>
+
+const props = defineProps<{
+   userStats : {
+    total_users : 0,
+    active_users : 0,
+    task_completed : 0,
+    pending_tasks :0
+   }
+}>()
+
+
+</script>
 
 <style scoped>
 
