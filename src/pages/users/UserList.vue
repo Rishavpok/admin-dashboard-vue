@@ -30,7 +30,7 @@
           </td>
           <td>
             <button class="btn-edit">Edit</button>
-            <button class="btn-delete">Delete</button>
+            <button @click="deleteUser(user.id)"  class="btn-delete">Delete</button>
           </td>
         </tr>
       </tbody>
@@ -63,6 +63,12 @@ const userList = ref([
 ]);
 
 const showAddUserModel = ref(false)
+
+
+function deleteUser(id: number) {
+   userList.value = userList.value.filter((user) => user.id != id )
+}
+
 
 function addUser() {
     showAddUserModel.value = true
