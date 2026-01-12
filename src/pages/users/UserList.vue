@@ -69,11 +69,7 @@ function addUser() {
 }
 
 function add(user :any) {
-    console.log(user)
-     userList.value.push(user)
-
-     console.log(userList.value)
-
+     userList.value.push({...user , id :crypto.randomUUID() })
      showAddUserModel.value = false
 }
 

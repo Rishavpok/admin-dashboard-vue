@@ -115,7 +115,6 @@ const { value: status, errorMessage: statusError } = useField("status");
 const { value: password, errorMessage: passwordError } = useField("password");
 
 const onSubmit = handleSubmit((values) => {
-    console.log(values)
   emit('submit', values)
   
 });
