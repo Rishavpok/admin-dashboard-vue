@@ -100,3 +100,10 @@ body {
 .material-icons {
   cursor: pointer;
 }
+
+
+.error {
+    text-align: center;
+    color: red;
+    font-size: 12px;
+}
