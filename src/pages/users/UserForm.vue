@@ -17,8 +17,7 @@
             placeholder="Enter full name"
           />
 
-          <span class="error" > {{ fullNameError }} </span>
-
+          <span class="error"> {{ fullNameError }} </span>
         </div>
 
         <!-- Email -->
@@ -31,22 +30,21 @@
             placeholder="Enter email address"
           />
 
-           <span class="error" > {{ emailError }} </span>
+          <span class="error"> {{ emailError }} </span>
         </div>
 
         <!-- Role -->
         <div class="form-group">
           <label for="role">Role</label>
+
           <select v-model="role" id="role">
-            <option value="">Select role</option>
+            <option value="" disabled>Select role</option>
             <option value="admin">Admin</option>
             <option value="manager">Manager</option>
             <option value="user">User</option>
           </select>
 
-           <span class="error" > {{ roleError }} </span>
-
-
+          <span class="error">{{ roleError }}</span>
         </div>
 
         <!-- Status -->
@@ -58,8 +56,7 @@
             <option value="inactive">Inactive</option>
           </select>
 
-           <span class="error" > {{ statusError }} </span>
-
+          <span class="error"> {{ statusError }} </span>
         </div>
 
         <!-- Password -->
@@ -72,8 +69,7 @@
             placeholder="Enter password"
           />
 
-           <span class="error" > {{ passwordError }} </span>
-
+          <span class="error"> {{ passwordError }} </span>
         </div>
 
         <!-- Actions -->
@@ -81,7 +77,9 @@
           <button type="button" class="btn cancel" @click="$emit('close')">
             Cancel
           </button>
-          <button type="submit" class="btn submit">Save User</button>
+          <button v-if="!editMode" type="submit" class="btn submit">Save User</button>
+          <button v-else type="submit" class="btn submit">Update User</button>
+
         </div>
       </form>
     </div>
@@ -91,8 +89,28 @@
 <script lang="ts" setup>
 import * as yup from "yup";
 import { useField, useForm } from "vee-validate";
+import { onMounted, watch } from "vue";
 
-const emit = defineEmits(['submit'])
+const emit = defineEmits(["submit","update"]);
+
+const props = defineProps({
+  user: {
+    type: Object,
+    default: {
+      id: 0,
+      name: "",
+      email: "",
+      role: "",
+      status: "",
+    },
+  },
+  editMode: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+
 
 // form setup and validation
 
@@ -104,7 +122,7 @@ const schema = yup.object({
   password: yup.string().required("Password is required"),
 });
 
-const { handleSubmit } = useForm({
+const { handleSubmit, setValues } = useForm({
   validationSchema: schema,
 });
 
@@ -115,9 +133,18 @@ const { value: status, errorMessage: statusError } = useField("status");
 const { value: password, errorMessage: passwordError } = useField("password");
 
 const onSubmit = handleSubmit((values) => {
-  emit('submit', values)
-  
+   props.editMode ? emit('update',values) : emit("submit", values);
 });
+
+watch(
+  () => props.user,
+  (newUser) => {
+    if (newUser) {
+      setValues(newUser);
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>
