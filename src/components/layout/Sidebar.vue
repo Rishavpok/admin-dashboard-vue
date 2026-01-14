@@ -28,7 +28,7 @@ const paths = ref([
     },
     {
         name : "Settings",
-        route : "/admin/settings"
+        route : "/admin/settings/profile"
     }
 ])
 

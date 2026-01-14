@@ -20,6 +20,16 @@ const router = createRouter({
          {
           path : "users",
           component :() => import("@/pages/users/UserList.vue")
+        },
+        {
+          path : "settings",
+          component : () => import("@/pages/settings/SettingsView.vue"),
+          children : [
+            {
+              path : "profile",
+              component : () => import("@/pages/settings/ProfileSettings.vue")
+            }
+          ]
         }
       ]
     },
