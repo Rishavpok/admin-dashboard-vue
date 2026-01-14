@@ -5,6 +5,32 @@
       <button @click="addUser" class="btn-add">+ Add User</button>
     </div>
 
+
+    <div class="user-filters">
+  <!-- Search -->
+  <input
+    type="text"
+    v-model="searchString"
+    class="search-input"
+    placeholder="Search by name or email..."
+  />
+
+  <!-- Role Filter -->
+  <select v-model="selectedRole" class="filter-select">
+    <option value="">All Roles</option>
+    <option value="admin">Admin</option>
+    <option value="manager">Manager</option>
+    <option value="user">User</option>
+  </select>
+
+  <!-- Status Filter -->
+  <select v-model="selectedStatus" class="filter-select">
+    <option value="">All Status</option>
+    <option value="active">Active</option>
+    <option value="inactive">Inactive</option>
+  </select>
+</div>
+
     <table class="user-table">
       <thead>
         <tr>
@@ -16,29 +42,31 @@
         </tr>
       </thead>
 
-      <tbody>
-        <tr v-for="user in userList">
-          <td>{{ user.name }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.role }}</td>
+      <tbody v-if="filteredUsers.length" >
+        <tr v-for="user in filteredUsers">
+          <td>{{ user?.name }}</td>
+          <td>{{ user?.email }}</td>
+          <td>{{ user?.role }}</td>
           <td>
             <span
               class="status"
               :class="{
-                active: user.status === 'active',
-                inactive: user.status === 'inactive',
+                active: user?.status === 'active',
+                inactive: user?.status === 'inactive',
               }"
-              >{{ user.status }}</span
+              >{{ user?.status }}</span
             >
           </td>
           <td>
             <button @click="editUser(user)" class="btn-edit">Edit</button>
-            <button @click="deleteUser(user.id)" class="btn-delete">
+            <button @click="deleteUser(user?.id)" class="btn-delete">
               Delete
             </button>
           </td>
         </tr>
       </tbody>
+
+      <p v-else style="text-align: center;" > No users found!!! </p>
     </table>
   </div>
 
@@ -63,63 +91,107 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import UserForm from "./UserForm.vue";
 
-const userList = ref([
+const allUserList = ref([
   {
     id: 1,
     name: "John Doe",
-    email: " john@example.com",
+    email: "john@example.com",
     role: "admin",
     status: "active",
   },
   {
     id: 2,
     name: "Jane Smith",
-    email: " jane@example.com",
+    email: "jane@example.com",
     role: "user",
     status: "inactive",
   },
 ]);
 
+const searchString = ref("");
+const selectedRole = ref("")
+const selectedStatus = ref("")
+
+/* ✅ COMPUTED FILTER */
+const filteredUsers = computed(() => {
+  let users = allUserList.value;
+
+  const search = searchString.value.trim().toLowerCase();
+  const role = selectedRole.value;
+  const status = selectedStatus.value;
+
+  if (search) {
+    users = users.filter(user =>
+      user.name.toLowerCase().includes(search) ||
+      user.email.toLowerCase().includes(search)
+    );
+  }
+
+  if (role) {
+    users = users.filter(user => user.role === role);
+  }
+
+  if (status) {
+    users = users.filter(user => user.status === status);
+  }
+
+  return users;
+});
+
+/* UI STATE */
 const showAddUserModel = ref(false);
-const user = ref(null);
+const user = ref<any>(null);
 const editMode = ref(false);
 const showDeleteModal = ref(false);
-const userId = ref(0)
+const userId = ref<number | null>(null);
 
-function deleteUser(id: number) {
-  userId.value = id
-  showDeleteModal.value = true;
+/* ACTIONS */
+function addUser() {
+  user.value = null;
+  editMode.value = false;
+  showAddUserModel.value = true;
 }
 
- function del() {
-  userList.value = userList.value.filter((user) => user.id != userId.value);
-  showDeleteModal.value = false
+function add(newUser: any) {
+  allUserList.value.push({
+    ...newUser,
+    id: crypto.randomUUID(),
+  });
+  showAddUserModel.value = false;
 }
 
 function editUser(item: any) {
-  user.value = item;
-  showAddUserModel.value = true;
+  user.value = { ...item };
   editMode.value = true;
-}
-
-function addUser() {
   showAddUserModel.value = true;
 }
 
-function add(user: any) {
-  userList.value.push({ ...user, id: crypto.randomUUID() });
-  showAddUserModel.value = false;
-}
-
-function updateUser(user: any) {
-  userList.value = userList.value.map((item) =>
-    item.id === user.id ? user : item
+function updateUser(updatedUser: any) {
+  const index = allUserList.value.findIndex(
+    (u) => u.id === updatedUser.id
   );
+
+  if (index !== -1) {
+    allUserList.value[index] = updatedUser;
+  }
+
   showAddUserModel.value = false;
   editMode.value = false;
+}
+
+function deleteUser(id: number) {
+  userId.value = id;
+  showDeleteModal.value = true;
+}
+
+function del() {
+  allUserList.value = allUserList.value.filter(
+    (user) => user.id !== userId.value
+  );
+  showDeleteModal.value = false;
 }
 </script>
 
@@ -226,5 +298,38 @@ function updateUser(user: any) {
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.user-filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #6366f1;
 }
 </style>
