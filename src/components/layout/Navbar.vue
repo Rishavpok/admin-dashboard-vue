@@ -3,10 +3,24 @@
     <div class="navbar-left">Admin Panel</div>
     <div class="navbar-right">
       <span>Hello, Admin</span>
-      <button class="logout-btn">Logout</button>
+      <button @click="logout" class="logout-btn">Logout</button>
     </div>
   </header>
 </template>
+
+<script lang="ts" setup>
+import { useRouter } from 'vue-router';
+
+
+const router = useRouter()
+
+
+function logout() {
+  localStorage.removeItem('token')
+  router.push("/login")
+}
+
+</script>
 
 <style scoped>
     /* Navbar */

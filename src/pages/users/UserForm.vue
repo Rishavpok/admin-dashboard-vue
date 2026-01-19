@@ -2,7 +2,8 @@
   <div class="modal-backdrop">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 class="modal-title">Create User</h2>
+        <h2 v-if="!props.editMode" class="modal-title">Create User</h2>
+        <h2 v-else class="modal-title">Edit User</h2>
         <button class="close-btn" @click="$emit('close')">&times;</button>
       </div>
 
@@ -39,9 +40,8 @@
 
           <select v-model="role" id="role">
             <option value="" disabled>Select role</option>
-            <option value="admin">Admin</option>
-            <option value="manager">Manager</option>
-            <option value="user">User</option>
+            <option value="ADMIN">Admin</option>
+            <option value="USER">User</option>
           </select>
 
           <span class="error">{{ roleError }}</span>
@@ -52,15 +52,15 @@
           <label for="status">Status</label>
           <select v-model="status" id="status">
             <option value="">Select status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
           </select>
 
           <span class="error"> {{ statusError }} </span>
         </div>
 
         <!-- Password -->
-        <div class="form-group">
+        <div v-if="!props.editMode" class="form-group">
           <label for="password">Password</label>
           <input
             v-model="password"
@@ -119,7 +119,12 @@ const schema = yup.object({
   email: yup.string().email().required("Email is required"),
   role: yup.string().required("Please select a role"),
   status: yup.string().required("Please select a status"),
-  password: yup.string().required("Password is required"),
+   password: yup.string().when('$editMode', {
+    is: false,
+    then: (schema) =>
+      schema.required("Password is required").min(6),
+    otherwise: (schema) => schema.notRequired(),
+  }),
 });
 
 const { handleSubmit, setValues } = useForm({

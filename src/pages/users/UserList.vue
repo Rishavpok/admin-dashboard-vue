@@ -1,98 +1,113 @@
 <template>
-  <div class="user-list">
-    <div class="user-list-header">
-      <h2>Users</h2>
-      <button @click="addUser" class="btn-add">+ Add User</button>
+  <div v-if="!isLoading">
+    <div class="user-list">
+      <div class="user-list-header">
+        <h2>Users</h2>
+        <button @click="addUser" class="btn-add">+ Add User</button>
+      </div>
+
+      <div class="user-filters">
+        <!-- Search -->
+        <input
+          type="text"
+          v-model="searchString"
+          class="search-input"
+          placeholder="Search by name or email..."
+        />
+
+        <!-- Role Filter -->
+        <select v-model="selectedRole" class="filter-select">
+          <option value="">All Roles</option>
+          <option value="admin">Admin</option>
+          <option value="manager">Manager</option>
+          <option value="user">User</option>
+        </select>
+
+        <!-- Status Filter -->
+        <select v-model="selectedStatus" class="filter-select">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody v-if="filteredUsers.length">
+          <tr v-for="user in filteredUsers">
+            <td>{{ user?.name }}</td>
+            <td>{{ user?.email }}</td>
+            <td>{{ user?.role }}</td>
+            <td>
+              <span
+                class="status"
+                :class="{
+                  active: user?.status === 'active',
+                  inactive: user?.status === 'inactive',
+                }"
+                >{{ user?.status }}</span
+              >
+            </td>
+            <td>
+              <button @click="editUser(user)" class="btn-edit">Edit</button>
+              <button @click="deleteUser(user?.id)" class="btn-delete">
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+
+        <p v-else style="text-align: center">No users found!!!</p>
+      </table>
     </div>
 
+    <UserForm
+      v-if="showAddUserModel"
+      :user="user"
+      :editMode="editMode"
+      @close="showAddUserModel = false"
+      @submit="add"
+      @update="updateUser"
+    />
 
-    <div class="user-filters">
-  <!-- Search -->
-  <input
-    type="text"
-    v-model="searchString"
-    class="search-input"
-    placeholder="Search by name or email..."
-  />
-
-  <!-- Role Filter -->
-  <select v-model="selectedRole" class="filter-select">
-    <option value="">All Roles</option>
-    <option value="admin">Admin</option>
-    <option value="manager">Manager</option>
-    <option value="user">User</option>
-  </select>
-
-  <!-- Status Filter -->
-  <select v-model="selectedStatus" class="filter-select">
-    <option value="">All Status</option>
-    <option value="active">Active</option>
-    <option value="inactive">Inactive</option>
-  </select>
-</div>
-
-    <table class="user-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Role</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-
-      <tbody v-if="filteredUsers.length" >
-        <tr v-for="user in filteredUsers">
-          <td>{{ user?.name }}</td>
-          <td>{{ user?.email }}</td>
-          <td>{{ user?.role }}</td>
-          <td>
-            <span
-              class="status"
-              :class="{
-                active: user?.status === 'active',
-                inactive: user?.status === 'inactive',
-              }"
-              >{{ user?.status }}</span
-            >
-          </td>
-          <td>
-            <button @click="editUser(user)" class="btn-edit">Edit</button>
-            <button @click="deleteUser(user?.id)" class="btn-delete">
-              Delete
-            </button>
-          </td>
-        </tr>
-      </tbody>
-
-      <p v-else style="text-align: center;" > No users found!!! </p>
-    </table>
+    <Teleport to="body">
+      <div v-if="showDeleteModal" class="modal-mask">
+        <div class="modal">
+          <p>Are you sure ?</p>
+          <button class="btn-delete" @click="del">Delete</button>
+          <button class="btn-delete" @click="showDeleteModal = false">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </Teleport>
   </div>
 
-  <UserForm
-    v-if="showAddUserModel"
-    :user="user"
-    :editMode="editMode"
-    @close="showAddUserModel = false"
-    @submit="add"
-    @update="updateUser"
-  />
-
-  <Teleport to="body">
-    <div v-if="showDeleteModal" class="modal-mask">
-      <div  class="modal">
-        <p>Are you sure ?</p>
-        <button class="btn-delete" @click="del">Delete</button>
-         <button class="btn-delete" @click="showDeleteModal = false">Cancel</button>
-      </div>
-    </div>
-  </Teleport>
+  <Loader v-else></Loader>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import UserForm from "./UserForm.vue";
+import {
+  createUser,
+  deleteUsr,
+  getUserList,
+  update,
+} from "@/services/users/users.service";
+import Loader from "@/components/common/Loader.vue";
+import { useToast } from "vue-toastification";
+
+const toast = useToast();
 
 const allUserList = ref([
   {
@@ -112,8 +127,9 @@ const allUserList = ref([
 ]);
 
 const searchString = ref("");
-const selectedRole = ref("")
-const selectedStatus = ref("")
+const selectedRole = ref("");
+const selectedStatus = ref("");
+const isLoading = ref(true);
 
 /* ✅ COMPUTED FILTER */
 const filteredUsers = computed(() => {
@@ -124,18 +140,19 @@ const filteredUsers = computed(() => {
   const status = selectedStatus.value;
 
   if (search) {
-    users = users.filter(user =>
-      user.name.toLowerCase().includes(search) ||
-      user.email.toLowerCase().includes(search)
+    users = users.filter(
+      (user) =>
+        user.name.toLowerCase().includes(search) ||
+        user.email.toLowerCase().includes(search)
     );
   }
 
   if (role) {
-    users = users.filter(user => user.role === role);
+    users = users.filter((user) => user.role === role);
   }
 
   if (status) {
-    users = users.filter(user => user.status === status);
+    users = users.filter((user) => user.status === status);
   }
 
   return users;
@@ -155,12 +172,27 @@ function addUser() {
   showAddUserModel.value = true;
 }
 
-function add(newUser: any) {
-  allUserList.value.push({
-    ...newUser,
-    id: crypto.randomUUID(),
-  });
-  showAddUserModel.value = false;
+async function add(newUser: any) {
+  console.log(newUser);
+  isLoading.value = true;
+  try {
+    const res = await createUser(newUser);
+    if (res) {
+      toast.success("User created successfuly");
+      showAddUserModel.value = false;
+      getUsers();
+    }
+  } catch (error) {
+    console.error(error);
+    toast.error("Something went wrong");
+  } finally {
+    isLoading.value = false;
+  }
+  // allUserList.value.push({
+  //   ...newUser,
+  //   id: crypto.randomUUID(),
+  // });
+  // showAddUserModel.value = false;
 }
 
 function editUser(item: any) {
@@ -169,17 +201,21 @@ function editUser(item: any) {
   showAddUserModel.value = true;
 }
 
-function updateUser(updatedUser: any) {
-  const index = allUserList.value.findIndex(
-    (u) => u.id === updatedUser.id
-  );
-
-  if (index !== -1) {
-    allUserList.value[index] = updatedUser;
+async function updateUser(updatedUser: any) {
+  isLoading.value = true;
+  try {
+    const res = await update(updatedUser.id, updatedUser);
+    if (res) {
+      toast.success("User updated successfully");
+      getUsers();
+      showAddUserModel.value = false;
+      editMode.value = false;
+    }
+  } catch (error) {
+    toast.error("Something went wrong");
+  } finally {
+    isLoading.value = false;
   }
-
-  showAddUserModel.value = false;
-  editMode.value = false;
 }
 
 function deleteUser(id: number) {
@@ -187,12 +223,33 @@ function deleteUser(id: number) {
   showDeleteModal.value = true;
 }
 
-function del() {
-  allUserList.value = allUserList.value.filter(
-    (user) => user.id !== userId.value
-  );
-  showDeleteModal.value = false;
+async function del() {
+  try {
+    const res = await deleteUsr(userId.value);
+    if (res) {
+      toast.success("User deleted successfully");
+      getUsers();
+    }
+  } catch (error) {
+    toast.error("Something went wrong");
+  } finally {
+    showDeleteModal.value = false;
+  }
 }
+
+async function getUsers() {
+  isLoading.value = true;
+  try {
+    const res = await getUserList();
+    allUserList.value = res["data"]["data"];
+  } catch (e) {
+    console.log(e);
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+onMounted(getUsers);
 </script>
 
 <style scoped>
